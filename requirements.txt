@@ -1,0 +1,3 @@
+openai
+transformers==4.24.0
+tqdm
