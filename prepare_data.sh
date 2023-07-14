@@ -35,3 +35,7 @@ mv esnli_train_2.csv raw_data/esnli_train_2.csv
 mv esnli_test.csv raw_data/esnli_test.csv
 
 python proc_esnli.py
+
+# code 002 cached results
+unzip code002cache.zip
+cp 002cache/* ../misc

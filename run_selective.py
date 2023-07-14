@@ -490,24 +490,13 @@ def run_evaluation(args, test_data, responses, print_perplexity=True, return_ver
     num_eval_samples = args.num_eval_samples if args.num_eval_samples > 0 else max_sample_num
 
     predictions = [
-        [Prediction(x["text"], x["prompt"], *score_of_completion(x)) for x in completions[:num_eval_samples]] for completions in responses
+        [Prediction(x["text"], x["prompt"]) for x in completions[:num_eval_samples]] for completions in responses
     ]
 
     if args.do_print:
         TaskEvaluator.do_printing = True
 
-    sums = np.array([[x.logprob for x in preds] for preds in predictions])
-    norms = np.array([[x.norm_logprob for x in preds] for preds in predictions])
-    avg_sum = sums.mean(axis=1).mean(axis=0)
-    avg_norm = norms.mean(axis=1).mean(axis=0)
-
-    if print_perplexity:
-        print("AVG Logprob: {:.4f}".format(avg_sum))
-        print("AVG Norm Logprob: {:.4f}".format(avg_norm))
-
     eval_results = evaluator.evaluate(predictions, test_data, prompting_style, return_verbose=return_verbose)
-    eval_results["avg_logprob"] = sums.mean(axis=1).mean(axis=0)
-    eval_results["avg_normlogprob"] = norms.mean(axis=1).mean(axis=0)
     if return_verbose:
         confidences = [
             [confidence_of_completion(x, evaluator.ANSWER_HINT) for x in completions[:num_eval_samples]] for completions in responses

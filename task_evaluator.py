@@ -13,12 +13,11 @@ from os.path import join
 
 EVALUATOR_REGISTRY = {}
 
-Prediction = namedtuple('Prediction', ['completion', 'prompt', 'logprob', 'norm_logprob'])
+Prediction = namedtuple('Prediction', ['completion', 'prompt'])
 
 
 def print_tabular_results(row_id, eval_result):
-    num_contents = [ "%.2f" % (eval_result["accuracy"] * 100), "%.2f" % (eval_result["consistency"] * 100),
-        str(eval_result["avg_logprob"]), str(eval_result["avg_normlogprob"])]
+    num_contents = [ "%.2f" % (eval_result["accuracy"] * 100), "%.2f" % (eval_result["consistency"] * 100)]
     print("\t".join(["TABINFO", str(row_id)] + num_contents))
 
 class TaskEvaluator(ABC):
@@ -51,8 +50,6 @@ class TaskEvaluator(ABC):
                 "completion": single_comp,
                 "answer": single_ans,
                 "explanation": single_exp,
-                "norm_logprob": p.norm_logprob,
-                "sum_logprob": p.logprob,
                 "acc": str(gt == single_ans),
             })
 
@@ -86,16 +83,11 @@ class TaskEvaluator(ABC):
                     if single_ans not in answer_counter:
                         answer_counter[single_ans] = {
                             "count": 0,
-                            "max_logprob": -1e6,
-                            "max_norm_logprob": -1e6,
                         }
                     stat = answer_counter[single_ans]
                     stat["count"] = stat["count"] + 1
-                    stat["max_logprob"] = max(stat["max_logprob"], p.logprob)
-                    stat["max_norm_logprob"] = max(stat["max_norm_logprob"], p.norm_logprob)
 
-                sorted_answers = sorted(answer_counter.keys(), key=lambda x: (answer_counter[x]["count"], answer_counter[x]["max_norm_logprob"]), reverse=True)
-                # sorted_answers = sorted(answer_counter.keys(), key=lambda x: ( answer_counter[x]["max_norm_logprob"],answer_counter[x]["count"] ), reverse=True)
+                sorted_answers = sorted(answer_counter.keys(), key=lambda x: (answer_counter[x]["count"]), reverse=True)
                 answer = sorted_answers[0]
                 if answer == "null" and len(sorted_answers) > 1:
                     answer = sorted_answers[1]
@@ -216,8 +208,6 @@ class GSMEvaluator(TaskEvaluator):
                 "answer": ans,
                 "raw_answer": single_ans,
                 "explanation": single_exp,
-                "norm_logprob": p.norm_logprob,
-                "sum_logprob": p.logprob,
                 "acc": str(gt == ans),
             })
 
